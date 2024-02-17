@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.7](https://github.com/devuri/advanced-custom-site-status/compare/v0.2.6...v0.2.7) (2024-02-17)
+
+
+### Bug Fixes
+
+* verify admin cap ([52f5bab](https://github.com/devuri/advanced-custom-site-status/commit/52f5bab960289847a8b65834909710e9193ba825))
+
 ## [0.2.6](https://github.com/devuri/advanced-custom-site-status/compare/v0.2.5...v0.2.6) (2024-02-17)
 
 
