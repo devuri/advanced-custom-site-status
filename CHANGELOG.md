@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.6](https://github.com/devuri/advanced-custom-site-status/compare/v0.2.5...v0.2.6) (2024-02-17)
+
+
+### Bug Fixes
+
+* clean up construct ([8f38e4d](https://github.com/devuri/advanced-custom-site-status/commit/8f38e4db862744285556dc9b8acc18acb5925036))
+
+
+### Miscellaneous Chores
+
+* vbump 0.2.6 ([58d28d3](https://github.com/devuri/advanced-custom-site-status/commit/58d28d37392bbf3cde5fd606d70a57f9968f14ba))
+
 ## [0.2.5](https://github.com/devuri/advanced-custom-site-status/compare/v0.2.4...v0.2.5) (2024-02-17)
 
 
