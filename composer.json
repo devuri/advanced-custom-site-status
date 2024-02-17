@@ -1,8 +1,8 @@
 {
-    "name": "devuri/wp-basic-plugin",
+    "name": "devuri/advanced-custom-site-status",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-only",
-    "description": "Plugin File",
+    "description": "Adds a custom health check endpoint with rate limiting to your WordPress site. Supports a customizable endpoint slug through a constant.",
     "authors": [
         {
             "name": "Uriel Wilson",
