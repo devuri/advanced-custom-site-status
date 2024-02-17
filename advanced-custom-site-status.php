@@ -27,7 +27,7 @@ class Advanced_Custom_Health_Check {
 
     public function __construct() {
         // Use a custom constant if defined, otherwise fallback to 'health-check'
-        $this->health_check_slug = defined('CUSTOM_HEALTH_CHECK_SLUG') ? CUSTOM_HEALTH_CHECK_SLUG : 'health-check';
+        $this->health_check_slug = defined('CUSTOM_HEALTH_CHECK_SLUG') ? CUSTOM_HEALTH_CHECK_SLUG : 'health-check-site-status';
 
         add_action('init', array($this, 'init'));
         add_filter('query_vars', array($this, 'register_query_var'));
