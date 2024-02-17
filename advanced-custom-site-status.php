@@ -20,42 +20,83 @@ if ( ! \defined( 'ABSPATH' ) ) {
 }
 
 
+/**
+ * Advanced Custom Health Check class.
+ *
+ * This class defines all code necessary to implement a custom health check for a WordPress site,
+ * including adding a custom rewrite rule for the health check endpoint, registering a custom query variable,
+ * and handling the rate limiting for the health check requests.
+ */
 class Advanced_Custom_Health_Check {
-    protected $rate_limit = 5; // Max number of requests allowed within the time frame
-    protected $lockout_time = 60; // Time frame in seconds
-    protected $health_check_slug; // Health check slug, customizable via a constant
 
+    /**
+     * The maximum number of requests allowed within the lockout time frame.
+     *
+     * @var int
+     */
+    protected $rate_limit = 5;
+
+    /**
+     * The time frame in seconds for the rate limit.
+     *
+     * @var int
+     */
+    protected $lockout_time = 60;
+
+    /**
+     * The slug for the health check endpoint, customizable via a constant.
+     *
+     * @var string
+     */
+    protected $health_check_slug;
+
+    /**
+     * Constructor for the Advanced Custom Health Check class.
+     *
+     * Sets up the health check slug and hooks into WordPress to initialize the custom health check functionality.
+     */
     public function __construct() {
-        // Use a custom constant if defined, otherwise fallback to 'health-check'
+        // Use a custom constant if defined, otherwise fallback to a default slug.
         $this->health_check_slug = defined('CUSTOM_HEALTH_CHECK_SLUG') ? CUSTOM_HEALTH_CHECK_SLUG : 'health-check-site-status';
 
+        // Initialize custom health check functionality.
         add_action('init', array($this, 'init'));
         add_filter('query_vars', array($this, 'register_query_var'));
         add_action('template_redirect', array($this, 'rate_limit_health_check'));
     }
 
+    /**
+     * Initializes the custom health check functionality.
+     *
+     * Adds the rewrite rule for the custom health check endpoint.
+     */
     public function init() {
         $this->add_health_check_rewrite_rule();
-        $this->flush_rules_on_activation();
     }
 
+    /**
+     * Adds the rewrite rule for the custom health check endpoint.
+     */
     public function add_health_check_rewrite_rule() {
         add_rewrite_rule('^' . $this->health_check_slug . '/?$', 'index.php?custom_health_check=1', 'top');
     }
 
-    public function flush_rules_on_activation() {
-        // Ensure the rewrite rules are flushed only on plugin activation
-        if (get_option('advanced_custom_health_check_flush_rewrite_rules_flag') === false) {
-            flush_rewrite_rules();
-            update_option('advanced_custom_health_check_flush_rewrite_rules_flag', true);
-        }
-    }
-
+    /**
+     * Registers the custom query variable for the health check.
+     *
+     * @param array $vars The array of whitelisted query variables.
+     * @return array The modified array including the custom health check query variable.
+     */
     public function register_query_var($vars) {
         $vars[] = 'custom_health_check';
         return $vars;
     }
 
+    /**
+     * Handles the rate limiting and execution of the health check.
+     *
+     * Rate limits health check requests based on IP address and performs a database connectivity check.
+     */
     public function rate_limit_health_check() {
         if (get_query_var('custom_health_check')) {
             $ip_address = sanitize_key(str_replace('.', '-', $_SERVER['REMOTE_ADDR']));
@@ -63,35 +104,53 @@ class Advanced_Custom_Health_Check {
 
             $current_count = get_transient($transient_key);
             if ($current_count === false) {
+                // First request within the lockout time frame.
                 set_transient($transient_key, 1, $this->lockout_time);
             } else {
                 if ($current_count < $this->rate_limit) {
+                    // Increment the count for subsequent requests within the lockout time frame.
                     set_transient($transient_key, $current_count + 1, $this->lockout_time);
                 } else {
+                    // Rate limit exceeded, send 429 status code.
                     status_header(429);
                     die('Rate limit exceeded. Please try again later.');
                 }
             }
 
-            // Custom health check logic goes here...
-            status_header(200);
-            echo json_encode(['status' => 'OK', 'message' => 'Site is up and running.']);
+            // Perform the database connectivity check.
+            global $wpdb;
+            if ($wpdb->get_var("SELECT 1") !== 1) {
+                status_header(500);
+                echo json_encode(['status' => 'Error', 'message' => 'Database connection error.']);
+            } else {
+                status_header(200);
+                echo json_encode(['status' => 'OK', 'message' => 'Site and database are up and running.']);
+            }
             exit;
         }
     }
 }
 
+
 // Initialize the plugin
 new Advanced_Custom_Health_Check();
 
-// Hook for plugin activation to flush rewrite rules
-register_activation_hook(__FILE__, 'advanced_custom_health_check_activate');
+// Hook for plugin activation to add rewrite rules and flush rewrite rules.
 function advanced_custom_health_check_activate() {
+    // Ensure our rewrite rule is added to the list.
+    global $advanced_custom_health_check;
+    $advanced_custom_health_check->add_health_check_rewrite_rule();
+
+    // Flush rewrite rules to ensure our new rule is added.
     flush_rewrite_rules();
 }
 
-// Hook for plugin deactivation to flush rewrite rules
-register_deactivation_hook(__FILE__, 'advanced_custom_health_check_deactivate');
+register_activation_hook(__FILE__, 'advanced_custom_health_check_activate');
+
+// Hook for plugin deactivation to flush rewrite rules and clean up.
 function advanced_custom_health_check_deactivate() {
+    // Flush rewrite rules to remove our rule from the list.
     flush_rewrite_rules();
 }
+
+register_deactivation_hook(__FILE__, 'advanced_custom_health_check_deactivate');
