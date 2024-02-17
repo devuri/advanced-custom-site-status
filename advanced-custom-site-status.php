@@ -55,9 +55,24 @@ class Advanced_Custom_Health_Check {
      *
      * Sets up the health check slug and hooks into WordPress to initialize the custom health check functionality.
      */
-    public function __construct() {
-        // Use a custom constant if defined, otherwise fallback to a default slug.
-        $this->health_check_slug = defined('CUSTOM_HEALTH_CHECK_SLUG') ? CUSTOM_HEALTH_CHECK_SLUG : 'health-check-site-status';
+    public function __construct( ?string $health_check_slug = null )
+	{
+		if ( defined('CUSTOM_HEALTH_CHECK_SLUG') && ! empty( CUSTOM_HEALTH_CHECK_SLUG ) ) {
+			$this->health_check_slug = CUSTOM_HEALTH_CHECK_SLUG;
+		} elseif ( $health_check_slug && ! empty($health_check_slug ) ) {
+			$this->health_check_slug = sanitize_key($health_check_slug);
+		} else {
+			$this->health_check_slug = 'health-check-site-status';
+		}
+
+		if ( get_option('ahc_healthcheck_slug_hash') ) {
+			$this->health_check_slug = md5($this->health_check_slug);
+		}
+
+		// settings
+		add_action('plugins_loaded', function () {
+		    new Health_Check_Slug_Settings( $this->health_check_slug );
+		});
 
         // Initialize custom health check functionality.
         add_action('init', array($this, 'init'));
@@ -78,7 +93,7 @@ class Advanced_Custom_Health_Check {
      * Adds the rewrite rule for the custom health check endpoint.
      */
     public function add_health_check_rewrite_rule() {
-        add_rewrite_rule('^' . $this->health_check_slug . '/?$', 'index.php?custom_health_check=1', 'top');
+        add_rewrite_rule('^' . $this->health_check_slug . '/?$', 'index.php?add_custom_health_check=1', 'top');
     }
 
     /**
@@ -88,7 +103,7 @@ class Advanced_Custom_Health_Check {
      * @return array The modified array including the custom health check query variable.
      */
     public function register_query_var($vars) {
-        $vars[] = 'custom_health_check';
+        $vars[] = 'add_custom_health_check';
         return $vars;
     }
 
@@ -98,7 +113,7 @@ class Advanced_Custom_Health_Check {
      * Rate limits health check requests based on IP address and performs a database connectivity check.
      */
     public function rate_limit_health_check() {
-        if (get_query_var('custom_health_check')) {
+        if (get_query_var('add_custom_health_check')) {
             $ip_address = sanitize_key(str_replace('.', '-', $_SERVER['REMOTE_ADDR']));
             $transient_key = 'health_check_' . $ip_address;
 
@@ -116,14 +131,121 @@ class Advanced_Custom_Health_Check {
                     wp_die('Rate limit exceeded. Please try again later.');
                 }
             }
+
+			// the connectivity check is okay.
+            status_header(200);
+            echo json_encode(['status' => 'OK', 'message' => 'Site is up and running.']);
+            exit;
         }
     }
+
+	protected function get_health_check_slug( bool $encoded_slug =  true ): string
+	{
+		if( $encoded_slug ===  true ) {
+			return md5( $this->health_check_slug );
+		}
+		return $this->health_check_slug;
+	}
 }
 
 
-// Initialize the plugin
-new Advanced_Custom_Health_Check();
+class Health_Check_Slug_Settings {
 
+
+	protected $healthcheck_slug;
+
+    public function __construct( ?string $healthcheck_slug = null ) {
+		$this->healthcheck_slug = $healthcheck_slug;
+        add_action('admin_menu', array($this, 'add_settings_submenu'));
+        add_action('admin_init', array($this, 'initialize_settings'));
+		add_filter('plugin_action_links_' . plugin_basename(__FILE__), array($this, 'add_action_links'));
+    }
+
+	public function add_action_links($links) {
+	        $settings_link = '<a href="options-general.php?page=health-check-slug-settings">Settings</a>';
+	        array_unshift($links, $settings_link);
+	        return $links;
+	}
+
+    public function add_settings_submenu() {
+        add_submenu_page(
+            'options-general.php', // Parent slug
+            'Health Check Slug Settings', // Page title
+            'Health Check Slug', // Menu title
+            'manage_options', // Capability
+            'health-check-slug-settings', // Menu slug
+            array($this, 'settings_page_content') // Callback function for the page content
+        );
+    }
+
+    public function settings_page_content()
+	{
+        ?>
+        <div class="wrap">
+            <h2>Health Check Slug Settings</h2>
+            <form method="post" action="options.php">
+                <?php
+                settings_fields('health-check-slug-settings-group');
+                do_settings_sections('health-check-slug-settings');
+				echo "Health Check Slug: ". home_url("/{$this->healthcheck_slug}");
+				echo '<p/>To apply changes to the URL, it\'s necessary to refresh the rewrite rules.<br/> This can be accomplished effortlessly by navigating to the Permalinks settings in your WordPress dashboard <br/> and clicking the "Save Changes" button, even if you don\'t make any modifications to the permalink structure itself.';
+                submit_button();
+                ?>
+            </form>
+        </div>
+        <?php
+    }
+
+    public function initialize_settings() {
+        register_setting(
+            'health-check-slug-settings-group',
+            'ahc_healthcheck_slug',
+            array('sanitize_callback' => 'sanitize_text_field')
+        );
+
+        register_setting(
+            'health-check-slug-settings-group',
+            'ahc_healthcheck_slug_hash',
+            array('sanitize_callback' => 'sanitize_text_field')
+        );
+
+        add_settings_section(
+            'health-check-slug-settings-section',
+            'Health Check Settings',
+            null,
+            'health-check-slug-settings'
+        );
+
+        add_settings_field(
+            'health-check-slug',
+            'Health Check Slug',
+            array($this, 'healthcheck_slug_field_callback'),
+            'health-check-slug-settings',
+            'health-check-slug-settings-section'
+        );
+
+        add_settings_field(
+            'health-check-slug-hash',
+            'Apply MD5 Hash',
+            array($this, 'healthcheck_slug_hash_field_callback'),
+            'health-check-slug-settings',
+            'health-check-slug-settings-section'
+        );
+    }
+
+    public function healthcheck_slug_field_callback() {
+        $ahc_healthcheck_slug = sanitize_key(get_option('ahc_healthcheck_slug'));
+        echo '<input type="text" id="ahc_healthcheck_slug" name="ahc_healthcheck_slug" value="' . esc_attr($ahc_healthcheck_slug) . '" />';
+    }
+
+    public function healthcheck_slug_hash_field_callback() {
+        $ahc_healthcheck_slug_hash = get_option('ahc_healthcheck_slug_hash');
+        echo '<input type="checkbox" id="ahc_healthcheck_slug_hash" name="ahc_healthcheck_slug_hash" value="1" ' . checked(1, $ahc_healthcheck_slug_hash, false) . '/>';
+    }
+}
+
+// Initialize the plugin
+new Advanced_Custom_Health_Check( get_option('ahc_healthcheck_slug', null ) );
 
 register_activation_hook(__FILE__, function () {
     flush_rewrite_rules();
