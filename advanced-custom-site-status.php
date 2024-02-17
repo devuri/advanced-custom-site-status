@@ -2,7 +2,7 @@
 
 /**
  * Plugin Name:       Advanced Custom Site Status
- * Plugin URI:        https://github.com/devuri/wp-basic-plugin
+ * Plugin URI:        https://github.com/devuri/advanced-custom-site-status
  * Description:       Adds a custom health check endpoint with rate limiting to your WordPress site. Supports a customizable endpoint slug through a constant.
  * Version:           0.2.3
  * Requires at least: 5.3.0
