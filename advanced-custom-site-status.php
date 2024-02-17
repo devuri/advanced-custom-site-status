@@ -113,20 +113,9 @@ class Advanced_Custom_Health_Check {
                 } else {
                     // Rate limit exceeded, send 429 status code.
                     status_header(429);
-                    die('Rate limit exceeded. Please try again later.');
+                    wp_die('Rate limit exceeded. Please try again later.');
                 }
             }
-
-            // Perform the database connectivity check.
-            global $wpdb;
-            if ($wpdb->get_var("SELECT 1") !== 1) {
-                status_header(500);
-                echo json_encode(['status' => 'Error', 'message' => 'Database connection error.']);
-            } else {
-                status_header(200);
-                echo json_encode(['status' => 'OK', 'message' => 'Site and database are up and running.']);
-            }
-            exit;
         }
     }
 }
