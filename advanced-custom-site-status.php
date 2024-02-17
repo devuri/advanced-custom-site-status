@@ -87,13 +87,11 @@ new Advanced_Custom_Health_Check();
 // Hook for plugin activation to flush rewrite rules
 register_activation_hook(__FILE__, 'advanced_custom_health_check_activate');
 function advanced_custom_health_check_activate() {
-    // Set a flag that rewrite rules need flushing
-    update_option('advanced_custom_health_check_flush_rewrite_rules_flag', false);
+    flush_rewrite_rules();
 }
 
 // Hook for plugin deactivation to flush rewrite rules
 register_deactivation_hook(__FILE__, 'advanced_custom_health_check_deactivate');
 function advanced_custom_health_check_deactivate() {
     flush_rewrite_rules();
-    delete_option('advanced_custom_health_check_flush_rewrite_rules_flag');
 }
