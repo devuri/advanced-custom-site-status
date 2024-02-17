@@ -1,5 +1,5 @@
 === Advanced Custom Site Status ===
-Contributors: [Your WordPress.org username]
+Contributors: icelayer
 Tags: health-check, database, wordpress, site-status, monitoring
 Requires at least: 5.3.0
 Tested up to: 6.4
