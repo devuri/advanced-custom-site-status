@@ -4,7 +4,7 @@
  * Plugin Name:       Advanced Custom Site Status
  * Plugin URI:        https://github.com/devuri/advanced-custom-site-status
  * Description:       Adds a custom health check endpoint with rate limiting to your WordPress site. Supports a customizable endpoint slug through a constant.
- * Version:           0.2.6
+ * Version:           0.2.7
  * Requires at least: 5.3.0
  * Requires PHP:      7.3.5
  * Author:            uriel
@@ -199,6 +199,9 @@ class Health_Check_Slug_Settings
 
     public function settings_page_content(): void
     {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die("Permission Error");
+		}
         ?>
         <div class="wrap">
             <h2>Health Check Slug Settings</h2>
