@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.5](https://github.com/devuri/advanced-custom-site-status/compare/v0.2.4...v0.2.5) (2024-02-17)
+
+
+### Features
+
+* adds admin page under settings so users can update the url ([8bfdb21](https://github.com/devuri/advanced-custom-site-status/commit/8bfdb2161ea7ae7446106d2b5050f5520bbf27c0))
+
+
+### Miscellaneous Chores
+
+* codefix ([88537de](https://github.com/devuri/advanced-custom-site-status/commit/88537de25dacb85f86f73f9a635d742022a66a89))
+* v bump 0.2.5 ([3aed861](https://github.com/devuri/advanced-custom-site-status/commit/3aed861e7dd877f1e42e3e342720343dc431abdf))
+
 ## [0.2.4](https://github.com/devuri/advanced-custom-site-status/compare/v0.2.3...v0.2.4) (2024-02-17)
 
 
