@@ -4,7 +4,7 @@ Tags: health-check, database, wordpress, site-status, monitoring
 Requires at least: 5.3.0
 Tested up to: 6.4
 Requires PHP: 7.3.5
-Stable tag: 0.2.3
+Stable tag: 0.2.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
