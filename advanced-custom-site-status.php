@@ -135,22 +135,12 @@ class Advanced_Custom_Health_Check {
 // Initialize the plugin
 new Advanced_Custom_Health_Check();
 
-// Hook for plugin activation to add rewrite rules and flush rewrite rules.
-function advanced_custom_health_check_activate() {
-    // Ensure our rewrite rule is added to the list.
-    global $advanced_custom_health_check;
-    $advanced_custom_health_check->add_health_check_rewrite_rule();
 
-    // Flush rewrite rules to ensure our new rule is added.
+register_activation_hook(__FILE__, function () {
     flush_rewrite_rules();
-}
+});
 
-register_activation_hook(__FILE__, 'advanced_custom_health_check_activate');
 
-// Hook for plugin deactivation to flush rewrite rules and clean up.
-function advanced_custom_health_check_deactivate() {
-    // Flush rewrite rules to remove our rule from the list.
+register_deactivation_hook(__FILE__, function () {
     flush_rewrite_rules();
-}
-
-register_deactivation_hook(__FILE__, 'advanced_custom_health_check_deactivate');
+});
