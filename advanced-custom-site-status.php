@@ -4,7 +4,7 @@
  * Plugin Name:       Advanced Custom Site Status
  * Plugin URI:        https://github.com/devuri/advanced-custom-site-status
  * Description:       Adds a custom health check endpoint with rate limiting to your WordPress site. Supports a customizable endpoint slug through a constant.
- * Version:           0.2.5
+ * Version:           0.2.6
  * Requires at least: 5.3.0
  * Requires PHP:      7.3.5
  * Author:            uriel
@@ -57,28 +57,15 @@ class Advanced_Custom_Health_Check
      */
     public function __construct( ?string $health_check_slug = null )
     {
-        if ( \defined('CUSTOM_HEALTH_CHECK_SLUG') && ! empty( CUSTOM_HEALTH_CHECK_SLUG ) ) {
-            $this->health_check_slug = CUSTOM_HEALTH_CHECK_SLUG;
-        } elseif ( $health_check_slug && ! empty($health_check_slug ) ) {
-            $this->health_check_slug = sanitize_key($health_check_slug);
-        } else {
-            $this->health_check_slug = 'health-check-site-status';
-        }
-
-        if ( get_option('ahc_healthcheck_slug_hash') ) {
-            $this->health_check_slug = md5($this->health_check_slug);
-        }
+        $this->set_health_check_slug( $health_check_slug );
+        $this->register_hooks();
 
         // settings
         add_action('plugins_loaded', function (): void {
             new Health_Check_Slug_Settings( $this->health_check_slug );
         });
-
-        // Initialize custom health check functionality.
-        add_action('init', [$this, 'init']);
-        add_filter('query_vars', [$this, 'register_query_var']);
-        add_action('template_redirect', [$this, 'rate_limit_health_check']);
     }
+
 
     /**
      * Initializes the custom health check functionality.
@@ -152,6 +139,28 @@ class Advanced_Custom_Health_Check
         }
 
         return $this->health_check_slug;
+    }
+
+    private function set_health_check_slug( ?string $health_check_slug ): void
+    {
+        if (\defined('CUSTOM_HEALTH_CHECK_SLUG') && ! empty(CUSTOM_HEALTH_CHECK_SLUG)) {
+            $this->health_check_slug = CUSTOM_HEALTH_CHECK_SLUG;
+        } elseif ( ! empty($health_check_slug)) {
+            $this->health_check_slug = sanitize_key($health_check_slug);
+        } else {
+            $this->health_check_slug = 'health-check-site-status';
+        }
+
+        if (get_option('ahc_healthcheck_slug_hash')) {
+            $this->health_check_slug = md5($this->health_check_slug);
+        }
+    }
+
+    private function register_hooks(): void
+    {
+        add_action('init', [$this, 'init']);
+        add_filter('query_vars', [$this, 'register_query_var']);
+        add_action('template_redirect', [$this, 'rate_limit_health_check']);
     }
 }
 
