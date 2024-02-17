@@ -1,0 +1,34 @@
+name: Static Analysis
+on:
+  pull_request:
+    types: [ assigned, opened ]
+  workflow_dispatch:
+
+jobs:
+  static-analysis:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-versions: ['7.4', '8.0', '8.1']
+    steps:
+      - name: "📥 Fetching Repository Contents"
+        uses: actions/checkout@v2
+
+      - name: "💽  Installing PHP, Composer"
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          coverage: none
+          ini-values: display_errors = on, error_reporting = E_ALL
+          tools: composer
+
+      - name: "💽  Installing Composer Packages"
+        run: composer install
+
+      - name: Validate composer.json and composer.lock
+        run: composer validate --strict
+
+      - name: "🧪 PHPStan Code Analysis"
+        run: composer phpstan
