@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Plugin Name:       Basic-Plugin
+ * Plugin Name:       Advanced Custom Site Status
  * Plugin URI:        https://github.com/devuri/wp-basic-plugin
  * Description:       Plugin bootstrap file.
  * Version:           0.2.3
@@ -9,7 +9,7 @@
  * Requires PHP:      7.3.5
  * Author:            uriel
  * Author URI:        https://github.com/devuri
- * Text Domain:       wp-basic-plugin
+ * Text Domain:       advanced-custom-site-status
  * License:           GPLv2
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Network: true
@@ -19,13 +19,6 @@ if ( ! \defined( 'ABSPATH' ) ) {
     exit;
 }
 
-<?php
-/*
-Plugin Name: Advanced Custom Health Check
-Description: Adds a custom health check endpoint with rate limiting to your WordPress site. Supports a customizable endpoint slug through a constant.
-Version: 1.0
-Author: Your Name
-*/
 
 class Advanced_Custom_Health_Check {
     protected $rate_limit = 5; // Max number of requests allowed within the time frame
