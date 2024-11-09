@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.8](https://github.com/devuri/advanced-custom-site-status/compare/v0.2.7...v0.2.8) (2024-11-09)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** update yoast/phpunit-polyfills requirement ([0f89dcd](https://github.com/devuri/advanced-custom-site-status/commit/0f89dcd0450f52bdacc37eeb705f9812f92e8685))
+
 ## [0.2.7](https://github.com/devuri/advanced-custom-site-status/compare/v0.2.6...v0.2.7) (2024-02-17)
 
 
